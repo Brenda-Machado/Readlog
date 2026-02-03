@@ -47,3 +47,45 @@ def close_database(exception):
     db = g.pop("db", None) # closes the conexion at the end of requisition
     if db is not None:
         db.close()
+
+
+# APP Endpoints
+
+@app.route("/")
+def index():
+    db = get_database()
+
+    # filter params, which are optional
+    title = request.args.get("title", "").strip()
+    author = request.args.get("author", "").strip()
+    genre = request.args.get("genre", "").strip()
+    year = request.args.get("year", "").strip()
+    rating = request.args.get("rating", "").strip()
+
+    query = "SELECT * FROM library WHERE 1=1"
+    parameters = []
+
+    if title:
+        query += "AND title LIKE ?" # we can add personalized filters
+        parameters.append(f"%{title}%")
+    if author:
+        query += "AND author LIKE ?" 
+        parameters.append(f"%{author}%")
+    if genre:
+        query += "AND genre LIKE ?" 
+        parameters.append(f"%{genre}%")
+    if year:
+        query += "AND year LIKE ?" 
+        parameters.append(f"%{year}%")
+    if rating:
+        query += "AND rating LIKE ?" 
+        parameters.append(f"%{rating}%")
+    
+    query += "ORDER BY data_read DESC NULLS LAST"
+    books = db.execute(query, parameters).fetchall()
+
+    return render_template(
+        "index.html", #TODO create a better page
+        books = books,
+        filters = dict(title=title, author=author, genre=genre, year=year, rating=rating)
+    )
