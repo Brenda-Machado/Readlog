@@ -94,3 +94,59 @@ def index():
         filters = dict(title=title, author=author, genre=genre, year=year, rating=rating),
         genres = genres
     )
+
+@app.route("/add", methods=["GET", "POST"])
+def add_book():
+    if request.method == "POST":
+        isbn = request.form.get("isbn", "").strip()
+        title = request.form.get("title", "").strip()
+        author = request.form.get("author", "").strip()
+        publisher = request.form.get("publisher", "").strip() or None
+        year = request.form.get("year", "").strip()
+        genre = request.form.get("genre", "").strip() or None
+        language = request.form.get("language", "").strip() or None
+        pages = request.form.get("pages", "").strip()
+        date_read = request.form.get("date_read", "").strip() or None
+        rating = request.form.get("rating", "").strip()
+        review = request.form.get("review", "").strip() or None
+
+        error = None
+
+        # non optional parameters
+        
+        if not isbn:
+            error = "ISBN is required."
+        elif not title:
+            error = "Title is required."
+        elif not author:
+            error = "Author is required."
+        
+        if error: 
+            return render_template("add.html", error=error) # TODO make a error page
+
+        db = get_database()
+        isbn_exists = db.execute("SELECT isbn FROM library WHERE isbn = ?", (isbn,)).fetchnone()
+        
+        if isbn_exists:
+            return render_template("add.html", error="A book with this ISBN already exists.")
+
+        # if no errors, add this new book to the database
+
+        db.execute("""INSERT INTO library (
+                   isbn, title, author, publisher, year, genre, language, pages, date_read, rating, review
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        isbn, title, author, publisher,
+                        int(year) if year else None,
+                        genre, language,
+                        int(pages) if pages else None,
+                        date_read,
+                        int(rating) if rating else None,
+                        review,
+                        ),
+                    )
+        db.commit()
+
+        return redirect(url_for("index"))
+
+    return render_template("add.html", error=None)   
