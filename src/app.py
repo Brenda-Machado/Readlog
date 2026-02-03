@@ -113,7 +113,7 @@ def add_book():
         error = None
 
         # non optional parameters
-        
+
         if not isbn:
             error = "ISBN is required."
         elif not title:
@@ -149,4 +149,32 @@ def add_book():
 
         return redirect(url_for("index"))
 
-    return render_template("add.html", error=None)   
+    return render_template("add.html", error=None)
+
+@app.route("/book/<isbn>")
+def book_detail(isbn):
+    db = get_database()
+    book = db.execute("SELECT * FROM library WHERE isbn = ?", (isbn,)).fetchnone()
+    
+    if book is None:
+        return "Book not found", 404
+    
+    return render_template("detail.html", book=book) #TODO create error page
+
+@app.route("/delete/<isbn>", methods=["POST"])
+def delete_book(isbn):
+    db = get_database()
+    db.execute("DELETE FROM library WHERE isbn = ?", (isbn,))
+    db.commit()
+
+    return redirect(url_for("index"))
+
+# Bootstrap logic
+
+os. makedirs(app.instance_path, exist_ok=True)
+
+with app.app_context():
+    init_database()
+
+if __name__ == "__main__":
+    app.run(debug=True)
