@@ -11,7 +11,7 @@ import os
 import sqlite3
 
 app = Flask(__name__)
-DATABASE = os.path.join(APP.instance_path, "library.db")
+DATABASE = os.path.join(app.instance_path, "library.db")
 
 # Database Funcitions
 
