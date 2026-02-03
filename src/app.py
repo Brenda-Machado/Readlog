@@ -1,5 +1,5 @@
 """
-My Books App - CS50 Final Project
+Readlog - CS50x 2026's Final Project
 
 Author: Brenda S. M.
 
@@ -13,7 +13,7 @@ import sqlite3
 app = Flask(__name__)
 DATABASE = os.path.join(app.instance_path, "library.db")
 
-# Database Funcitions
+# Database Functions
 
 def get_database():
     if "db" not in g: # simple namespace object that has the same lifetime as an application context.
@@ -88,7 +88,7 @@ def index():
     ]
 
     return render_template(
-        "index.html", #TODO create a better page
+        "index.html", 
         books = books,
         filters = dict(title=title, author=author, genre=genre, year=year, rating=rating),
         genres = genres
@@ -125,9 +125,12 @@ def add_book():
 
         db = get_database()
         isbn_exists = db.execute("SELECT isbn FROM library WHERE isbn = ?", (isbn,)).fetchone()
-        
+        title_exists = db.execute("SELECT isbn FROM library WHERE title = ?", (title,)).fetchone()
+
         if isbn_exists:
             return render_template("add.html", error="A book with this ISBN already exists.")
+        if title_exists:
+            return render_template("add.html", error="A book with this title already exists.")
 
         # if no errors, add this new book to the database
 
@@ -158,7 +161,7 @@ def book_detail(isbn):
     if book is None:
         return "Book not found", 404
     
-    return render_template("detail.html", book=book) #TODO create error page
+    return render_template("detail.html", book=book)
 
 @app.route("/delete/<isbn>", methods=["POST"])
 def delete_book(isbn):
