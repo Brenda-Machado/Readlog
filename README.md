@@ -44,8 +44,9 @@ Open `http://127.0.0.1:5000` in your browser.
 - Add books with ISBN, title, author, and optional metadata
 - Rate and review books
 - Search by title, author, genre, year, or rating
-- View book details
+- View and edit book details
 - Delete books
+- Export .CSV
 
 ---
 
