@@ -53,6 +53,7 @@ Open `http://127.0.0.1:5000` in your browser.
 
 - Maybe make the appearence and layout different?
 - Dark option.
+- Import .csv.
 
 ---
 

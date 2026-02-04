@@ -6,7 +6,9 @@ Author: Brenda S. M.
 app.py
 """
 
-from flask import Flask, render_template, request, redirect, url_for, g
+from flask import Flask, render_template, request, redirect, url_for, g, make_response
+from io import StringIO
+import csv
 import os
 import sqlite3
 
@@ -249,6 +251,41 @@ def edit_book(isbn):
         return redirect(url_for("book_detail", isbn=new_isbn))
         
     return render_template("edit.html", book=book, error=None)
+
+@app.route("/export")
+def export_csv():
+    db = get_database()
+    books = db.execute("SELECT * FROM library ORDER BY date_read DESC NULLS LAST").fetchall()
+    
+    output = StringIO()
+    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(['ISBN', 'Title', 'Author', 'Publisher', 'Year', 'Genre', 
+                     'Language', 'Pages', 'Date Read', 'Rating', 'Review'])
+    
+    for book in books:
+        review = book['review'] or ''
+        review = review.replace('\n', ' ').replace('\r', ' ').strip()
+
+        writer.writerow([
+            book['isbn'],
+            book['title'],
+            book['author'],
+            book['publisher'] or '',
+            book['year'] or '',
+            book['genre'] or '',
+            book['language'] or '',
+            book['pages'] or '',
+            book['date_read'] or '',
+            book['rating'] or '',
+            review
+        ])
+    
+    output.seek(0)
+    response = make_response(output.getvalue())
+    response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    response.headers['Content-Disposition'] = 'attachment; filename=readlog_library.csv'
+    
+    return response
 
 # Bootstrap logic
 
