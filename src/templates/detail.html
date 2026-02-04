@@ -66,6 +66,7 @@
 
 <div class="detail-actions">
     <a href="/" class="btn btn-ghost">Back to library</a>
+    <a href="/edit/{{ book.isbn }}" class="btn btn-primary">Edit</a>
     <form method="post" action="/delete/{{ book.isbn }}" style="margin-left: auto;">
         <button type="submit" class="btn btn-danger"
                 onclick="return confirm('Delete this book permanently?')">Delete</button>

@@ -1,0 +1,97 @@
+{% extends "database.html" %}
+
+{% block title %}Readlog — Edit Book{% endblock %}
+
+{% block content %}
+
+<div class="page-title">Edit book</div>
+
+{% if error %}
+<div class="error-box">{{ error }}</div>
+{% endif %}
+
+<form method="post" action="/edit/{{ book.isbn }}">
+
+    <!-- required row -->
+    <div class="form-row" style="margin-bottom: 16px;">
+        <div class="field">
+            <label>ISBN <span class="req">*</span></label>
+            <input type="text" name="isbn" placeholder="e.g. 978-0-452-28423-4" value="{{ book.isbn }}" required>
+            <span class="hint">Used as unique identifier</span>
+        </div>
+        <div class="field">
+            <label>Title <span class="req">*</span></label>
+            <input type="text" name="title" placeholder="Book title" value="{{ book.title }}" required>
+        </div>
+    </div>
+
+    <!-- author + publisher -->
+    <div class="form-row" style="margin-bottom: 16px;">
+        <div class="field">
+            <label>Author <span class="req">*</span></label>
+            <input type="text" name="author" placeholder="Author name" value="{{ book.author }}" required>
+        </div>
+        <div class="field">
+            <label>Publisher</label>
+            <input type="text" name="publisher" placeholder="Publisher name" value="{{ book.publisher or '' }}">
+        </div>
+    </div>
+
+    <!-- metadata row -->
+    <div class="form-row" style="margin-bottom: 16px;">
+        <div class="field">
+            <label>Year</label>
+            <input type="number" name="year" placeholder="Publication year" value="{{ book.year or '' }}">
+        </div>
+        <div class="field">
+            <label>Genre</label>
+            <input type="text" name="genre" placeholder="e.g. Fiction, Sci-Fi…" value="{{ book.genre or '' }}">
+        </div>
+    </div>
+
+    <!-- more metadata -->
+    <div class="form-row" style="margin-bottom: 16px;">
+        <div class="field">
+            <label>Language</label>
+            <input type="text" name="language" placeholder="e.g. English" value="{{ book.language or '' }}">
+        </div>
+        <div class="field">
+            <label>Pages</label>
+            <input type="number" name="pages" placeholder="Number of pages" value="{{ book.pages or '' }}">
+        </div>
+    </div>
+
+    <!-- reading info -->
+    <div class="form-row" style="margin-bottom: 16px;">
+        <div class="field">
+            <label>Date read</label>
+            <input type="date" name="date_read" value="{{ book.date_read or '' }}">
+        </div>
+        <div class="field">
+            <label>Rating</label>
+            <!-- star rating widget with current value pre-selected -->
+            <div class="star-input">
+                {% for i in range(5, 0, -1) %}
+                <input type="radio" name="rating" id="star-{{ i }}" value="{{ i }}" {% if book.rating == i %}checked{% endif %}>
+                <label for="star-{{ i }}">&#9733;</label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- review (full width) -->
+    <div class="form-row full" style="margin-bottom: 24px;">
+        <div class="field">
+            <label>Review</label>
+            <textarea name="review" placeholder="Your thoughts on the book…">{{ book.review or '' }}</textarea>
+        </div>
+    </div>
+
+    <!-- submit -->
+    <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a href="/book/{{ book.isbn }}" class="btn btn-ghost">Cancel</a>
+    </div>
+</form>
+
+{% endblock %}

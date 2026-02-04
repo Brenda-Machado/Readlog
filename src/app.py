@@ -37,6 +37,7 @@ def init_database():
             rating      INTEGER CHECK (rating BETWEEN 1 AND 5),
             review      TEXT
         ); """)
+    db.commit()
 
 @app.cli.command("init-database")
 def init_database_command():
@@ -45,6 +46,7 @@ def init_database_command():
 @app.teardown_appcontext
 def close_database(exception):
     db = g.pop("db", None) # closes the conexion at the end of requisition
+    
     if db is not None:
         db.close()
 
@@ -170,6 +172,83 @@ def delete_book(isbn):
     db.commit()
 
     return redirect(url_for("index"))
+
+@app.route("/edit/<isbn>", methods=["GET", "POST"])
+def edit_book(isbn):
+    db = get_database()
+    book = db.execute("SELECT * FROM library where isbn = ?", (isbn,)).fetchone()
+
+    if book is None:
+        return "Book not found", 404
+    
+    if request.method == "POST":
+        new_isbn    = request.form.get("isbn", "").strip()
+        new_title       = request.form.get("title", "").strip()
+        new_author      = request.form.get("author", "").strip()
+        new_publisher   = request.form.get("publisher", "").strip() or None
+        new_year        = request.form.get("year", "").strip()
+        new_genre       = request.form.get("genre", "").strip() or None
+        new_language    = request.form.get("language", "").strip() or None
+        new_pages       = request.form.get("pages", "").strip()
+        new_date_read   = request.form.get("date_read", "").strip() or None
+        new_rating      = request.form.get("rating", "").strip()
+        new_review      = request.form.get("review", "").strip()
+
+        error = None
+
+        if not new_isbn:
+            error = "ISBN is required."
+        elif not new_title:
+            error = "Title is required."
+        elif not new_author:
+            error = "Author is required."
+        
+        if error:
+            return render_template("edit.html", book=book, error=error)
+
+        if new_isbn != isbn:
+            isbn_exists = db.execute("SELECT isbn FROM library WHERE isbn = ?", (new_isbn,)).fetchone()
+
+            if isbn_exists:
+                return render_template("edit.html", book=book, error="A book with this ISBN already exists.")
+        
+            db.execute("DELETE FROM library WHERE isbn = ?", (isbn,))
+            db.execute(
+                """INSERT INTO library
+                   (isbn, title, author, publisher, year, genre, language, pages, date_read, rating, review)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    new_isbn, new_title, new_author, new_publisher,
+                    int(new_year) if new_year else None,
+                    new_genre, new_language,
+                    int(new_pages) if new_pages else None,
+                    new_date_read,
+                    int(new_rating) if new_rating else None,
+                    new_review,
+                ),
+            )
+        else:
+            db.execute(
+                """UPDATE library SET
+                   title = ?, author = ?, publisher = ?, year = ?, genre = ?,
+                   language = ?, pages = ?, date_read = ?, rating = ?, review = ?
+                   WHERE isbn = ?""",
+                (
+                    new_title, new_author, new_publisher,
+                    int(new_year) if new_year else None,
+                    new_genre, new_language,
+                    int(new_pages) if new_pages else None,
+                    new_date_read,
+                    int(new_rating) if new_rating else None,
+                    new_review,
+                    isbn,
+                ),
+            )
+        
+        db.commit()
+        return redirect(url_for("book_detail", isbn=new_isbn))
+        
+    return render_template("edit.html", book=book, error=None)
 
 # Bootstrap logic
 
