@@ -84,7 +84,7 @@ def index():
     query += " ORDER BY date_read DESC NULLS LAST"
     books = db.execute(query, parameters).fetchall()
     genres = [
-        row["genre"] for row in db.execute("SELECT DISTINCT genre FROM books WHERE genre IS NOT NULL ORDER BY genre").fetchall()
+        row["genre"] for row in db.execute("SELECT DISTINCT genre FROM library WHERE genre IS NOT NULL ORDER BY genre").fetchall()
     ]
 
     return render_template(
